@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Same tests as testng.xml, one browser at a time. Used to tell a real failure
+  apart from one caused by three headless Chromes competing for a small runner.
+-->
+<suite name="ui-regression-serial" parallel="false" verbose="1">
+
+  <listeners>
+    <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+  </listeners>
+
+  <test name="saucedemo">
+    <classes>
+      <class name="io.github.alikursady.qa.tests.LoginTest"/>
+      <class name="io.github.alikursady.qa.tests.CartTest"/>
+    </classes>
+  </test>
+
+  <test name="the-internet">
+    <classes>
+      <class name="io.github.alikursady.qa.tests.DynamicElementTest"/>
+      <class name="io.github.alikursady.qa.tests.FrameAndAlertTest"/>
+    </classes>
+  </test>
+
+</suite>
