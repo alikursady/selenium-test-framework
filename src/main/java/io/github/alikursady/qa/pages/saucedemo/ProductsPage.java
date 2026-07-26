@@ -41,12 +41,13 @@ public class ProductsPage extends BasePage {
 
     @Step("Add '{productName}' to the cart")
     public ProductsPage addToCart(String productName) {
-        WebElement item = itemFor(productName);
-        item.findElement(By.cssSelector("button")).click();
-        // The button label flips to "Remove" in the same render that updates the
-        // cart badge. Without waiting for it, reading the badge straight after
-        // this call races the DOM update and sees the old count.
-        until(driver -> "Remove".equals(item.findElement(By.cssSelector("button")).getText()));
+        int before = cartBadgeCount();
+        itemFor(productName).findElement(By.cssSelector("button")).click();
+        // Waiting on the badge rather than on the button label: the label is
+        // styled with text-transform, so getText() gives back the rendered
+        // casing and that turned out to differ between my machine and the CI
+        // runner. The badge is a number and does not care.
+        until(driver -> cartBadgeCount() == before + 1);
         return this;
     }
 
