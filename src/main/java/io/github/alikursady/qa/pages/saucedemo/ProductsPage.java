@@ -41,7 +41,12 @@ public class ProductsPage extends BasePage {
 
     @Step("Add '{productName}' to the cart")
     public ProductsPage addToCart(String productName) {
-        itemFor(productName).findElement(By.cssSelector("button")).click();
+        WebElement item = itemFor(productName);
+        item.findElement(By.cssSelector("button")).click();
+        // The button label flips to "Remove" in the same render that updates the
+        // cart badge. Without waiting for it, reading the badge straight after
+        // this call races the DOM update and sees the old count.
+        until(driver -> "Remove".equals(item.findElement(By.cssSelector("button")).getText()));
         return this;
     }
 
@@ -53,6 +58,7 @@ public class ProductsPage extends BasePage {
     @Step("Open the cart")
     public CartPage openCart() {
         click(cartLink);
+        until(ExpectedConditions.urlContains("cart.html"));
         return new CartPage(driver);
     }
 

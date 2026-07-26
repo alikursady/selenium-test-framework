@@ -3,6 +3,7 @@ package io.github.alikursady.qa.pages.saucedemo;
 import io.github.alikursady.qa.pages.BasePage;
 import io.qameta.allure.Step;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -25,13 +26,26 @@ public class CartPage extends BasePage {
         super(driver);
     }
 
+    /**
+     * The products page uses the same .title element, so a bare text read here
+     * can pick up "Products" before the navigation has finished.
+     */
+    private void awaitLoaded() {
+        until(ExpectedConditions.textToBe(By.cssSelector(".title"), "Your Cart"));
+    }
+
     public boolean isLoaded() {
-        return "Your Cart".equals(textOf(heading));
+        try {
+            awaitLoaded();
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     @Step("Read the product names in the cart")
     public List<String> productNames() {
-        until(ExpectedConditions.visibilityOf(heading));
+        awaitLoaded();
         return cartItems.stream()
                 .map(item -> item.findElement(By.cssSelector(".inventory_item_name")).getText())
                 .toList();
