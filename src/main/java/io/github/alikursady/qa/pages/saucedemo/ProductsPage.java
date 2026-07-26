@@ -42,12 +42,11 @@ public class ProductsPage extends BasePage {
     @Step("Add '{productName}' to the cart")
     public ProductsPage addToCart(String productName) {
         int before = cartBadgeCount();
-        itemFor(productName).findElement(By.cssSelector("button")).click();
-        // Waiting on the badge rather than on the button label: the label is
-        // styled with text-transform, so getText() gives back the rendered
-        // casing and that turned out to differ between my machine and the CI
-        // runner. The badge is a number and does not care.
-        until(driver -> cartBadgeCount() == before + 1);
+        // Checking the badge rather than the button label: the label is styled
+        // with text-transform, so getText() returns the rendered casing and
+        // that differs between environments. The badge is a number.
+        clickUntil(itemFor(productName).findElement(By.cssSelector("button")),
+                driver -> cartBadgeCount() == before + 1);
         return this;
     }
 
@@ -58,8 +57,7 @@ public class ProductsPage extends BasePage {
 
     @Step("Open the cart")
     public CartPage openCart() {
-        click(cartLink);
-        until(ExpectedConditions.urlContains("cart.html"));
+        clickUntil(cartLink, ExpectedConditions.urlContains("cart.html"));
         return new CartPage(driver);
     }
 

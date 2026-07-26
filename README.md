@@ -64,6 +64,8 @@ The framework lives under `src/main` and only the tests live under `src/test`, w
 
 The suite only runs against Chrome. There is a Firefox branch in `DriverFactory` but I have not exercised it, and it is not in CI.
 
+Clicks on saucedemo are issued through a helper that checks whether the click actually did anything and clicks again if it did not. On a loaded CI runner the app accepts a click, returns cleanly and does nothing perhaps one time in ten, and I could not reproduce it locally at all. Each retry is gated on the outcome not having happened yet, so a click that worked is never repeated, but it is still a workaround for the application rather than a fix.
+
 Both target sites are third-party and I do not control them. If either is down or slow the build fails, and it will look like a product bug rather than an environment one. There is no retry logic, so a single network blip fails the run.
 
 The iframe test reads text instead of typing it. The TinyMCE editor on the-internet is served in readonly mode (`mce-content-readonly`), so a typing scenario is not possible on that page. I found this the slow way, after the test failed with `invalid element state`.
