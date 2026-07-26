@@ -2,6 +2,7 @@ package io.github.alikursady.qa.pages;
 
 import io.github.alikursady.qa.config.Config;
 import org.openqa.selenium.Alert;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -43,14 +44,22 @@ public abstract class BasePage {
     }
 
     /**
-     * Clicks and then waits for the effect the click was supposed to have,
-     * clicking again if nothing happened.
+     * Clicks, then waits for the effect the click was supposed to have, and
+     * tries again if nothing happened.
      * <p>
-     * The application under test is a React app and on a loaded CI runner it
-     * intermittently accepts a click without running the handler: the element
-     * reports as clickable, the click returns cleanly, and the page does not
-     * change. Retrying a click that already worked would undo it, so every
-     * retry is gated on the outcome not having happened yet.
+     * On headless Chrome under Linux this application accepts a WebDriver click
+     * without running its handler: the element reports clickable, the call
+     * returns cleanly, and nothing changes. It does not reproduce on Windows,
+     * and it happens on plain buttons as well as on the cart link, which is an
+     * empty anchor with no href drawn entirely in CSS. Running the suite one
+     * browser at a time reduced how often it happened but did not stop it, so
+     * it is not only contention.
+     * <p>
+     * The first attempt is a real click, so the normal path still exercises hit
+     * testing. Only after that fails does it fall back to dispatching the click
+     * on the element directly, which React does pick up. Every attempt is gated
+     * on the outcome not having happened yet, because repeating a click that
+     * worked would undo it.
      */
     protected void clickUntil(WebElement element, ExpectedCondition<?> settled) {
         Duration perAttempt = Duration.ofSeconds(4);
@@ -60,7 +69,12 @@ public abstract class BasePage {
             if (Boolean.TRUE.equals(quietly(settled))) {
                 return;
             }
-            click(element);
+            if (attempt == 1) {
+                click(element);
+            } else {
+                until(ExpectedConditions.elementToBeClickable(element));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            }
             try {
                 new WebDriverWait(driver, perAttempt).until(settled);
                 return;

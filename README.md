@@ -64,7 +64,7 @@ The framework lives under `src/main` and only the tests live under `src/test`, w
 
 The suite only runs against Chrome. There is a Firefox branch in `DriverFactory` but I have not exercised it, and it is not in CI.
 
-Clicks on saucedemo are issued through a helper that checks whether the click actually did anything and clicks again if it did not. On a loaded CI runner the app accepts a click, returns cleanly and does nothing perhaps one time in ten, and I could not reproduce it locally at all. Each retry is gated on the outcome not having happened yet, so a click that worked is never repeated, but it is still a workaround for the application rather than a fix.
+Clicks on saucedemo go through a helper that checks whether the click did anything and falls back to dispatching the event on the element directly. On headless Chrome under Linux the app accepts a WebDriver click without running its handler; it never happens on Windows, and running one browser at a time made it rarer but did not stop it. The fallback is a real compromise: a dispatched click skips hit testing, so from the second attempt onwards the test would no longer notice an element being covered by an overlay. The first attempt is still a genuine click, which is what keeps that check alive on the normal path.
 
 Both target sites are third-party and I do not control them. If either is down or slow the build fails, and it will look like a product bug rather than an environment one. There is no retry logic, so a single network blip fails the run.
 
